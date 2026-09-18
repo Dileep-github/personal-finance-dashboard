@@ -1,0 +1,20 @@
+{
+  "_comment": "Rules are checked top to bottom. 'pattern' is a case-insensitive regex tested against the cleaned particulars text. First match wins. Edit freely — the app reloads this file on every import.",
+  "rules": [
+    {"pattern": "\\b(ZEPTO|ZEPTONOW|SWIGGY INSTAMART|BLINKIT)\\b", "category": "Groceries & Quick Commerce"},
+    {"pattern": "\\bSWIGGY\\b", "category": "Food Delivery"},
+    {"pattern": "\\b(MYNTRA|NYKAA|JOCKEY|TRU COLORS|VEEVA JEWELS|PRASHANTI SAREES|ADITYA BIRLA FASHION|PRANATHI FASHION)\\b", "category": "Fashion & Shopping"},
+    {"pattern": "\\bAMAZON\\b", "category": "Online Shopping (Amazon)"},
+    {"pattern": "\\b(FIRSTCRY|FIRSTCRYC)\\b", "category": "Baby & Kids"},
+    {"pattern": "\\b(SIP ACADEMY)\\b", "category": "Education / Tuition"},
+    {"pattern": "\\b(CAPITAL DENTAL CARE|PHARMACY|SRI VENKATESWARA DISP|TONI AND GUY SALON|SALON)\\b", "category": "Health & Personal Care"},
+    {"pattern": "\\b(PVR INOX|BIGTREE ENTERTAINMENT)\\b", "category": "Entertainment"},
+    {"pattern": "\\bANGEL ONE\\b", "category": "Investments"},
+    {"pattern": "\\bPMJJBY\\b", "category": "Insurance"},
+    {"pattern": "Avg bal Chgs", "category": "Bank Charges"},
+    {"pattern": "Int\\.Pd", "category": "Interest Credit"},
+    {"pattern": "^MOB/TPFT/", "category": "Transfer In (Self)"},
+    {"pattern": "UPI/P2A/", "category": "Person-to-Person Transfer"},
+    {"pattern": "UPI/P2M/", "category": "Merchant Payment (Other)"}
+  ]
+}
