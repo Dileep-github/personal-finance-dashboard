@@ -103,3 +103,33 @@ startup — restart the backend to pick up rule edits.
 - **Model won't train ("not enough confirmed data")** — you need at least
   two different categories represented among confirmed transactions;
   import a statement first, since rule-matches count as confirmed.
+
+## Learnings-ECC
+
+Mapping specific moments in this session to the actual ECC agents/skills
+available in this environment (names as they'd be invoked here):
+
+| Session moment | What I did manually | Could've used instead | Why it's better |
+|---|---|---|---|
+| Figuring out app.py vs backend/main.py relationship | Several rounds of Read/Grep across app.py, backend/main.py, CLAUDE.md | `Agent(subagent_type: "ecc:code-explorer")` | Purpose-built to trace execution paths and map dependencies; keeps exploration noise out of the main thread if run as a real subagent |
+| Deleting app.py/run_windows.bat as dead code | Manual `rm` + grep for stray references | `/ecc:refactor-clean` (agent `ecc:refactor-cleaner`) | Runs actual dead-code analysis, not just grep — catches references a keyword search misses |
+| Reviewing the Python-side diff (requirements.txt, backend/main.py) | No independent review | `Agent(subagent_type: "ecc:python-reviewer")` | Second opinion before commit, at near-zero cost |
+| "update the CLAUDE.md" (vague ask) | Manual inference + hand-edit | `/ecc:update-docs` (agent `ecc:doc-updater`) | Built specifically to sync docs from source-of-truth files like storage.py — designed for exactly that ask |
+| Setting up electron-builder packaging for v1 | Manual package.json edits + trial-and-error builds | `/ecc:orch-add-feature` | Plans → implements → reviews → gated-commits a new capability end to end instead of ad hoc iteration |
+| winCodeSign download failure / app.asar file lock | Manually read stack traces, guessed `signAndEditExecutable: false`, retried by hand | `Agent(subagent_type: "ecc:build-error-resolver")` | Its whole job is "detect build system, fix incrementally, minimal diffs" — exactly this loop, in an isolated context |
+| Deciding what belongs in `.gitignore` / whether to commit `release/` | Manual `git status` reasoning | `/ecc:git-workflow` | Encodes build-artifact/git hygiene conventions directly |
+| Diagnosing + fixing the hardcoded-port bug | Manual `tasklist`/`netstat`/PowerShell forensics, hand-written fix, throwaway dummy-listener test | `/ecc:orch-fix-defect` | Enforces reproduce-as-failing-test → fix → review → gated commit — would've left a **permanent regression test**, not a one-off manual check |
+| Verifying the fix didn't break anything | Never ran the existing suite | `Agent(subagent_type: "ecc:e2e-runner")` or plain `npm run test:e2e` | Exists precisely to catch regressions in the electron/frontend/backend wiring I touched |
+| Reviewing electron/main.js, preload.js, client.ts before committing | Self-review only | `/code-review` or `Agent(subagent_type: "ecc:typescript-reviewer")` | Fresh-context review pass before a gated commit |
+| "commit all the changes" | Manual `git add -A` + `git commit` | `/ecc:prp-commit` | "Quick commit with natural language file targeting" — same result, less manual staging |
+| This retrospective itself | Manual read of `.claude/settings.local.json` + session recall | `/ecc:learn` or `/ecc:learn-eval` | Systematic session-pattern extraction into reusable memory/skills, with a quality self-eval built in |
+| Where session cost/budget went | Never measured | `/ecc:cost-report` | Local report from ECC's cost-tracker metrics log |
+| Overall repo/tooling health (the settings.local.json bloat) | Not audited | `/ecc:harness-audit` or `/ecc:repo-scan` | Deterministic scorecard that would've flagged exactly the permission-allowlist bloat I found by hand |
+
+The two to prioritize going forward: **`/ecc:orch-fix-defect`** for any
+future bug fix (it's the one that would've produced a lasting regression
+test instead of a throwaway verification), and
+**`Agent(subagent_type: "ecc:build-error-resolver")`** for build-tool
+iteration loops like the electron-builder failures, since those are
+exactly the kind of noisy, multi-retry work worth isolating from the
+main conversation.
