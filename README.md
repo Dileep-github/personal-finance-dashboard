@@ -39,6 +39,25 @@ If double-clicking does nothing, right-click `run_windows.bat` → *Run as
 administrator*, or open Command Prompt in this folder and run
 `run_windows.bat` there to see any error message.
 
+## React + Electron UI (in development)
+
+There's also an in-progress React/Electron desktop UI (`frontend/`,
+`electron/`, `backend/`) with the same functionality, talking to the same
+`data/` folder as the Tkinter app above via a local FastAPI server. It
+requires Node.js and a Python virtual environment with
+`backend/requirements.txt` installed. To run it:
+
+```
+npm install
+npm install --prefix frontend
+.venv\Scripts\python -m pip install -r backend/requirements.txt   # or: uv pip install -r backend/requirements.txt
+npm run dev
+```
+
+This starts the FastAPI backend, the Vite dev server, and the Electron
+window together. There's no installer build yet — this is dev-only for
+now. See `CLAUDE.md` for architecture details.
+
 ## Using the app
 
 - **Import tab** — Browse to a statement PDF, click Import. You'll get a
