@@ -44,6 +44,15 @@ npm install --prefix frontend
 npm run dev
 ```
 
+If `py` isn't on your PATH (the Python launcher isn't installed), and you
+have [uv](https://docs.astral.sh/uv/) instead, use it for the venv steps:
+
+```
+uv venv .venv
+uv pip install -r requirements.txt
+uv pip install -r backend\requirements.txt
+```
+
 `npm run dev` starts the FastAPI backend (`:8756`), the Vite dev server
 (`:5173`), and the Electron window together. There's no installer build
 yet — this is dev-only for now. See `CLAUDE.md` for architecture details.
