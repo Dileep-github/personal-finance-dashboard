@@ -1,6 +1,22 @@
 import type { Transaction, FilterOptions, ImportResult, RetrainResult } from '../lib/types';
 
-const BASE_URL = 'http://127.0.0.1:8756';
+declare global {
+  interface Window {
+    // Set by electron/preload.js in packaged builds — production picks a
+    // free backend port at launch instead of a fixed one (see
+    // electron/main.js), so the built frontend can't know it at build time.
+    statementLedger?: { apiBaseUrl: string };
+  }
+}
+
+// Overridable so the E2E suite can point at an isolated test backend
+// instance without colliding with a real `npm run dev` session on 8756.
+// window.statementLedger (Electron production) takes priority over both,
+// since it reflects the port actually bound at runtime.
+const BASE_URL =
+  (typeof window !== 'undefined' && window.statementLedger?.apiBaseUrl) ||
+  import.meta.env.VITE_API_BASE_URL ||
+  'http://127.0.0.1:8756';
 
 async function handle<T>(res: Response): Promise<T> {
   if (!res.ok) {

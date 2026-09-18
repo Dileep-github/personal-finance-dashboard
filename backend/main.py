@@ -1,8 +1,8 @@
 """
 backend/main.py
-FastAPI wrapper around the existing Tkinter app's logic (parser.py,
-categorizer.py, storage.py) so the React/Electron UI can talk to the same
-rules, ML model, and SQLite ledger as app.py — nothing about categorization,
+FastAPI wrapper around the shared parsing/categorization/storage logic
+(parser.py, categorizer.py, storage.py) so the React/Electron UI can talk
+to the rules, ML model, and SQLite ledger — nothing about categorization,
 parsing, or storage is reimplemented here.
 
 Run with:  uvicorn backend.main:app --host 127.0.0.1 --port 8756
@@ -21,13 +21,16 @@ from categorizer import Categorizer, UNCATEGORIZED
 from parser import parse_statement_pdf, extract_bank_and_counterparty, month_key
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATA_DIR = os.path.join(BASE_DIR, "data")
+# Overridable so E2E tests can point at disposable fixture data instead of
+# the real data/ledger.db (which holds actual personal bank transactions).
+# Unset in normal use (npm run dev, Electron) — defaults are unchanged.
+DATA_DIR = os.environ.get("STATEMENT_LEDGER_DATA_DIR") or os.path.join(BASE_DIR, "data")
 DB_PATH = os.path.join(DATA_DIR, "ledger.db")
 MODEL_PATH = os.path.join(DATA_DIR, "model.joblib")
 RULES_PATH = os.path.join(BASE_DIR, "rules.json")
 
-# Kept in sync by hand with ALL_CATEGORIES in app.py — used only for the
-# edit-category dropdown, not the filter dropdowns (see /api/filters).
+# Used only for the edit-category dropdown, not the filter dropdowns
+# (see /api/filters).
 ALL_CATEGORIES = [
     "Groceries & Quick Commerce", "Food Delivery", "Fashion & Shopping",
     "Online Shopping (Amazon)", "Person-to-Person Transfer",
@@ -40,9 +43,21 @@ ALL_CATEGORIES = [
 app = FastAPI(title="Statement Ledger API")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    # Explicit allowlist, not "*" — this API returns real bank transaction
+    # data, and a wildcard would let any other page open in the user's
+    # browser read it via fetch() while this backend happens to be running
+    # (loopback binding doesn't stop that; the browser is the vector).
+    # "null" covers Electron's packaged renderer, which loads over file://
+    # and sends Origin: null. 5183 is the E2E test suite's dedicated Vite
+    # port (see playwright.config.ts) — deliberately separate from 5173 so
+    # tests never collide with a real dev session.
+    allow_origins=[
+        "http://localhost:5173", "http://127.0.0.1:5173",
+        "http://localhost:5183", "http://127.0.0.1:5183",
+        "null",
+    ],
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type"],
 )
 
 conn = None
@@ -137,8 +152,8 @@ async def import_statement(file: UploadFile = File(...)):
                        "note at the top of parser.py.",
             )
 
-        # Own connection, same as _import_pdf in app.py — kept separate from
-        # the shared global `conn` used by the read endpoints.
+        # Own connection, kept separate from the shared global `conn` used
+        # by the read endpoints.
         import_conn = storage.get_connection(DB_PATH)
         try:
             sid = storage.start_statement(import_conn, file.filename or "statement.pdf")

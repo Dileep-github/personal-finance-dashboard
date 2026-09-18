@@ -11,4 +11,7 @@ env/
 *.log
 node_modules/
 frontend/dist/
-*.code-workspace
+test-results/
+playwright-report/
+tests/e2e/.data/
+release/

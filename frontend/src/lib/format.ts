@@ -1,4 +1,4 @@
-// Python's f"₹{n:,.2f}" (app.py) uses Western/3-digit grouping, NOT Indian
+// Python's f"₹{n:,.2f}" (backend/main.py) uses Western/3-digit grouping, NOT Indian
 // lakh/crore grouping — 'en-US' matches it exactly, 'en-IN' would not.
 export function formatMoney(n: number): string {
   return `₹${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;

@@ -1,7 +1,7 @@
 {
   "name": "statement-ledger-desktop",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Electron + React UI for Statement Ledger, talking to the existing Python parsing/categorization/storage logic over a local FastAPI backend.",
   "main": "electron/main.js",
   "scripts": {
@@ -9,12 +9,45 @@
     "dev:frontend": "npm run dev --prefix frontend",
     "dev:electron": "wait-on http-get://127.0.0.1:8756/api/health http://localhost:5173 && cross-env NODE_ENV=development electron electron/main.js",
     "dev": "concurrently -k -n backend,frontend,electron -c blue,green,magenta \"npm:dev:backend\" \"npm:dev:frontend\" \"npm:dev:electron\"",
-    "build:frontend": "npm run build --prefix frontend"
+    "build:frontend": "npm run build --prefix frontend",
+    "predist:win": "taskkill /F /IM \"Statement Ledger.exe\" /T & exit 0",
+    "dist:win": "npm run build:frontend && electron-builder --win",
+    "test:e2e": "playwright test"
   },
   "devDependencies": {
+    "@playwright/test": "^1.48.0",
     "concurrently": "^9.1.0",
     "cross-env": "^7.0.3",
     "electron": "^44.4.2",
+    "electron-builder": "^25.1.8",
     "wait-on": "^8.0.1"
+  },
+  "build": {
+    "appId": "com.statementledger.app",
+    "productName": "Statement Ledger",
+    "asar": true,
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "electron/**/*",
+      "frontend/dist/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      { "from": "backend", "to": "backend", "filter": ["**/*", "!__pycache__"] },
+      { "from": "parser.py", "to": "parser.py" },
+      { "from": "categorizer.py", "to": "categorizer.py" },
+      { "from": "storage.py", "to": "storage.py" },
+      { "from": "rules.json", "to": "rules.json" },
+      { "from": ".venv", "to": ".venv" }
+    ],
+    "win": {
+      "target": ["nsis"],
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "artifactName": "StatementLedger-Setup-v${version}.${ext}"
+    }
   }
 }
