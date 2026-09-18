@@ -15,3 +15,4 @@ test-results/
 playwright-report/
 tests/e2e/.data/
 release/
+*.code-workspace
