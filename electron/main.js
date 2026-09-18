@@ -8,10 +8,22 @@
 const { app, BrowserWindow, dialog } = require("electron");
 const { spawn } = require("child_process");
 const path = require("path");
+const net = require("net");
 
 const REPO_ROOT = path.join(__dirname, "..");
-const BACKEND_PORT = 8756;
-const BACKEND_HEALTH_URL = `http://127.0.0.1:${BACKEND_PORT}/api/health`;
+// Packaged builds run out of an asar archive, so the Python backend (which
+// electron-builder copies in unpacked, see package.json's `extraResources`)
+// lives under process.resourcesPath instead of next to electron/main.js.
+const BACKEND_ROOT = app.isPackaged ? process.resourcesPath : REPO_ROOT;
+// In dev, `npm run dev`'s dev:backend script already started uvicorn on this
+// fixed port (with --reload), and the Vite dev server's frontend build
+// defaults to it too (see frontend/src/api/client.ts) — so dev keeps a fixed
+// port. Production has no such coordination, so it picks a free port at
+// launch instead (see getFreePort()) rather than hardcoding one: a leftover
+// dev session, or a previous packaged instance that didn't shut down
+// cleanly, holding port 8756 would otherwise make the backend fail to bind
+// and the app would quit with the health-check timeout below.
+const DEV_BACKEND_PORT = 8756;
 const DEV_SERVER_URL = "http://localhost:5173";
 const isDev = process.env.NODE_ENV === "development";
 
@@ -19,14 +31,26 @@ let backendProcess = null;
 let mainWindow = null;
 
 function pythonExePath() {
-  return path.join(REPO_ROOT, ".venv", "Scripts", "python.exe");
+  return path.join(BACKEND_ROOT, ".venv", "Scripts", "python.exe");
 }
 
-function startBackend() {
+function getFreePort() {
+  return new Promise((resolve, reject) => {
+    const server = net.createServer();
+    server.unref();
+    server.on("error", reject);
+    server.listen(0, "127.0.0.1", () => {
+      const { port } = server.address();
+      server.close(() => resolve(port));
+    });
+  });
+}
+
+function startBackend(port) {
   backendProcess = spawn(
     pythonExePath(),
-    ["-m", "uvicorn", "backend.main:app", "--host", "127.0.0.1", "--port", String(BACKEND_PORT)],
-    { cwd: REPO_ROOT, windowsHide: true }
+    ["-m", "uvicorn", "backend.main:app", "--host", "127.0.0.1", "--port", String(port)],
+    { cwd: BACKEND_ROOT, windowsHide: true }
   );
   backendProcess.stdout.on("data", (d) => process.stdout.write(`[backend] ${d}`));
   backendProcess.stderr.on("data", (d) => process.stderr.write(`[backend] ${d}`));
@@ -38,11 +62,11 @@ function startBackend() {
   });
 }
 
-async function waitForBackend(timeoutMs = 15000, intervalMs = 300) {
+async function waitForBackend(healthUrl, timeoutMs = 15000, intervalMs = 300) {
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
     try {
-      const res = await fetch(BACKEND_HEALTH_URL);
+      const res = await fetch(healthUrl);
       if (res.ok) return true;
     } catch {
       // backend not up yet — keep polling
@@ -52,7 +76,7 @@ async function waitForBackend(timeoutMs = 15000, intervalMs = 300) {
   return false;
 }
 
-function createWindow() {
+function createWindow(apiPort) {
   mainWindow = new BrowserWindow({
     width: 1150,
     height: 720,
@@ -60,6 +84,10 @@ function createWindow() {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
       nodeIntegration: false,
+      // Tells preload.js which port the backend actually bound to, so the
+      // (already-built, static) renderer can learn it at runtime — see
+      // frontend/src/api/client.ts.
+      additionalArguments: [`--api-port=${apiPort}`],
     },
   });
 
@@ -75,25 +103,27 @@ function createWindow() {
 }
 
 app.whenReady().then(async () => {
-  // In dev, `npm run dev`'s dev:backend script already started uvicorn
-  // (with --reload) — spawning a second copy here would just fight it for
-  // port 8756 and crash. Electron only owns the backend process in
-  // production, where there's no separate npm-managed instance.
+  let port = DEV_BACKEND_PORT;
   if (!isDev) {
-    startBackend();
+    try {
+      port = await getFreePort();
+    } catch {
+      port = DEV_BACKEND_PORT; // fall back to the default if port-scan itself fails
+    }
+    startBackend(port);
   }
-  const ready = await waitForBackend();
+  const ready = await waitForBackend(`http://127.0.0.1:${port}/api/health`);
   if (!ready) {
     dialog.showErrorBox(
       "Statement Ledger",
       isDev
-        ? "Could not reach the backend at http://127.0.0.1:8756 — make sure `npm run dev` (not just electron) started it."
+        ? `Could not reach the backend at http://127.0.0.1:${port} — make sure \`npm run dev\` (not just electron) started it.`
         : "The backend did not start in time. Check that the .venv Python environment has the backend dependencies installed (backend/requirements.txt)."
     );
     app.quit();
     return;
   }
-  createWindow();
+  createWindow(port);
 });
 
 app.on("window-all-closed", () => {

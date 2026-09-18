@@ -11,3 +11,7 @@ env/
 *.log
 node_modules/
 frontend/dist/
+test-results/
+playwright-report/
+tests/e2e/.data/
+release/

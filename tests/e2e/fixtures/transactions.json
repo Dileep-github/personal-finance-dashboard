@@ -1,0 +1,112 @@
+[
+  {
+    "date": "05-01-2025",
+    "particulars": "UPI/P2M/000000000001/ZEPTO MARKETPLACE/Paymen/AXIS BANK",
+    "counterparty": "Zepto Marketplace",
+    "bank": "Axis Bank",
+    "debit": 500.0,
+    "credit": 0.0,
+    "balance": 9500.0,
+    "category": "Groceries & Quick Commerce",
+    "source": "rule"
+  },
+  {
+    "date": "15-01-2025",
+    "particulars": "UPI/P2M/000000000002/SWIGGY/Paymen/AXIS BANK",
+    "counterparty": "Swiggy",
+    "bank": "Axis Bank",
+    "debit": 300.0,
+    "credit": 0.0,
+    "balance": 9200.0,
+    "category": "Food Delivery",
+    "source": "rule"
+  },
+  {
+    "date": "20-01-2025",
+    "particulars": "NEFT/SALARY CREDIT/EMPLOYER PVT LTD",
+    "counterparty": "Employer Pvt Ltd",
+    "bank": "HDFC Bank",
+    "debit": 0.0,
+    "credit": 50000.0,
+    "balance": 59200.0,
+    "category": "Incoming Transfer / Refund",
+    "source": "rule"
+  },
+  {
+    "date": "10-02-2025",
+    "particulars": "UPI/P2M/000000000004/AMAZON PAY/Paymen/AXIS BANK",
+    "counterparty": "Amazon Pay",
+    "bank": "Axis Bank",
+    "debit": 1200.0,
+    "credit": 0.0,
+    "balance": 58000.0,
+    "category": "Online Shopping (Amazon)",
+    "source": "rule"
+  },
+  {
+    "date": "12-02-2025",
+    "particulars": "UPI/P2M/000000000005/RANDOM MERCHANT XYZ/Paymen/HDFC BANK",
+    "counterparty": "Random Merchant Xyz",
+    "bank": "HDFC Bank",
+    "debit": 800.0,
+    "credit": 0.0,
+    "balance": 57200.0,
+    "category": "Uncategorized",
+    "source": "none"
+  },
+  {
+    "date": "25-02-2025",
+    "particulars": "INT.PD:01-02-2025 TO 25-02-2025",
+    "counterparty": "",
+    "bank": "Axis Bank",
+    "debit": 0.0,
+    "credit": 150.0,
+    "balance": 57350.0,
+    "category": "Interest Credit",
+    "source": "rule"
+  },
+  {
+    "date": "05-03-2025",
+    "particulars": "UPI/P2M/000000000007/ZEPTO MARKETPLACE/Paymen/AXIS BANK",
+    "counterparty": "Zepto Marketplace",
+    "bank": "Axis Bank",
+    "debit": 600.0,
+    "credit": 0.0,
+    "balance": 56750.0,
+    "category": "Groceries & Quick Commerce",
+    "source": "rule"
+  },
+  {
+    "date": "10-03-2025",
+    "particulars": "UPI/P2A/000000000008/JOHN DOE/Paymen/STATE BANK OF INDIA",
+    "counterparty": "John Doe",
+    "bank": "State Bank of India",
+    "debit": 2000.0,
+    "credit": 0.0,
+    "balance": 54750.0,
+    "category": "Person-to-Person Transfer",
+    "source": "ml"
+  },
+  {
+    "date": "15-03-2025",
+    "particulars": "UPI/P2M/000000000009/ZERODHA SIP/Paymen/AXIS BANK",
+    "counterparty": "Zerodha Sip",
+    "bank": "Axis Bank",
+    "debit": 5000.0,
+    "credit": 0.0,
+    "balance": 49750.0,
+    "category": "Investments",
+    "source": "rule"
+  },
+  {
+    "date": "20-03-2025",
+    "particulars": "NEFT/REFUND ORDER 12345/MERCHANT REFUNDS LTD",
+    "counterparty": "Merchant Refunds Ltd",
+    "bank": "HDFC Bank",
+    "debit": 0.0,
+    "credit": 400.0,
+    "balance": 50150.0,
+    "category": "Incoming Transfer / Refund",
+    "source": "rule"
+  }
+]

@@ -52,17 +52,27 @@ export default function StatementView({ reviewOnly, setReviewOnly }: Props) {
     [baseRows, month],
   );
 
+  // Category-filtered but NOT review-filtered — this is the "full" financial
+  // view for the month/bank/type/category currently selected. The stat cards
+  // and header always summarize this, regardless of the "needs review"
+  // toggle: that toggle is a workflow aid for finding things to correct, not
+  // a financial-reporting filter, so it must never zero out the dashboard.
+  const categoryFilteredRows = useMemo(
+    () => (selectedCategory ? displayRows.filter((r) => r.category === selectedCategory) : displayRows),
+    [displayRows, selectedCategory],
+  );
+
+  // What the ledger table actually shows — additionally narrowed by the
+  // "needs review only" toggle.
   const ledgerRows = useMemo(() => {
-    let rows = displayRows;
-    if (selectedCategory) rows = rows.filter((r) => r.category === selectedCategory);
-    if (reviewOnly) rows = rows.filter((r) => !r.confirmed);
+    const rows = reviewOnly ? categoryFilteredRows.filter((r) => !r.confirmed) : categoryFilteredRows;
     return [...rows].sort((a, b) => parseDate(b.date) - parseDate(a.date) || b.id - a.id);
-  }, [displayRows, selectedCategory, reviewOnly]);
+  }, [categoryFilteredRows, reviewOnly]);
 
   const totals = useMemo(() => {
     let debit = 0;
     let credit = 0;
-    for (const r of ledgerRows) {
+    for (const r of categoryFilteredRows) {
       if (r.type === 'debit') debit += r.debit;
       else credit += r.credit;
     }
@@ -70,8 +80,8 @@ export default function StatementView({ reviewOnly, setReviewOnly }: Props) {
     let closing = 0;
     let bankName = 'All banks';
     let dateRange = '';
-    if (ledgerRows.length > 0) {
-      const chronological = [...ledgerRows].sort((a, b) => parseDate(a.date) - parseDate(b.date));
+    if (categoryFilteredRows.length > 0) {
+      const chronological = [...categoryFilteredRows].sort((a, b) => parseDate(a.date) - parseDate(b.date));
       const first = chronological[0];
       const last = chronological[chronological.length - 1];
       opening = first.balance - first.credit + first.debit;
@@ -80,11 +90,11 @@ export default function StatementView({ reviewOnly, setReviewOnly }: Props) {
     }
     if (bank !== 'All') bankName = bank;
     return {
-      debit, credit, net: credit - debit, count: ledgerRows.length,
+      debit, credit, net: credit - debit, count: categoryFilteredRows.length,
       opening, closing, bankName, dateRange,
-      needsReview: ledgerRows.filter((r) => !r.confirmed).length,
+      needsReview: categoryFilteredRows.filter((r) => !r.confirmed).length,
     };
-  }, [ledgerRows, bank]);
+  }, [categoryFilteredRows, bank]);
 
   const categoryData = useMemo(() => {
     const byCat = new Map<string, number>();
@@ -211,10 +221,10 @@ export default function StatementView({ reviewOnly, setReviewOnly }: Props) {
         <div className="ledger-toolbar">
           <h3>Ledger entries</h3>
           <div className="ledger-toolbar-right">
-            <span>{totals.count} entries</span>
-            {totals.needsReview > 0 && (
+            <span>{ledgerRows.length} entries</span>
+            {(reviewOnly || totals.needsReview > 0) && (
               <button className="link-button" onClick={() => setReviewOnly(!reviewOnly)}>
-                {reviewOnly ? 'showing needs review' : `${totals.needsReview} need review`}
+                {reviewOnly ? 'showing needs review — show all' : `${totals.needsReview} need review`}
               </button>
             )}
             <button className="link-button" onClick={handleRetrain}>Retrain model</button>
