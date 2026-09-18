@@ -11,3 +11,4 @@ env/
 *.log
 node_modules/
 frontend/dist/
+*.code-workspace

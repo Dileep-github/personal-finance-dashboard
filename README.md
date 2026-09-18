@@ -44,13 +44,29 @@ administrator*, or open Command Prompt in this folder and run
 There's also an in-progress React/Electron desktop UI (`frontend/`,
 `electron/`, `backend/`) with the same functionality, talking to the same
 `data/` folder as the Tkinter app above via a local FastAPI server. It
-requires Node.js and a Python virtual environment with
-`backend/requirements.txt` installed. To run it:
+requires [Node.js](https://nodejs.org/) and Python 3.10+. To set it up:
 
 ```
 npm install
 npm install --prefix frontend
-.venv\Scripts\python -m pip install -r backend/requirements.txt   # or: uv pip install -r backend/requirements.txt
+
+py -3 -m venv .venv
+.venv\Scripts\python -m pip install -r requirements.txt
+.venv\Scripts\python -m pip install -r backend\requirements.txt
+```
+
+If `py` isn't on your PATH (the Python launcher isn't installed), and you
+have [uv](https://docs.astral.sh/uv/) instead, use it for the venv steps:
+
+```
+uv venv .venv
+uv pip install -r requirements.txt
+uv pip install -r backend\requirements.txt
+```
+
+Then, either way:
+
+```
 npm run dev
 ```
 
